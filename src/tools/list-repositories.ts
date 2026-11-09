@@ -1,7 +1,7 @@
 import type { McpTool } from "../types.js";
 import type { GitHubOperations } from "../github/operations.js";
 import { ListRepositoriesSchema, toJsonSchema } from "../schemas/index.js";
-import { fail } from "node:assert";
+import { fromZodError, fail } from "../errors/index.js";
 
 
 export function listRepositoriesTool(github: GitHubOperations): McpTool {

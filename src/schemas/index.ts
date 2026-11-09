@@ -1,4 +1,4 @@
-import { optional, z } from "zod";
+import { z } from "zod";
 
 const owner = z.string().trim().min(1, "owner es requerido").describe("dueño del repositorio: usuario o organiciónza de Github. EJ: octocat");
 const repo = z.string().trim().min(1, "repo es requerido").describe("Nombre del repositorio, sin el owner. EJ: mi-repositorio");

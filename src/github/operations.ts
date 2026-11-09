@@ -128,7 +128,7 @@ export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = D
 
                 () => octokit.rest.issues.create({ owner, repo, title, ...(body ? { body } : {}), ...(labels ? { labels } : {}) }),
 
-                soloRateLimit, // crear un issue NO es idempotente: no reintentamos errores de red 
+                soloRateLimit, // crear un issue NO es importante: no reintentamos errores de red 
 
             );
 
