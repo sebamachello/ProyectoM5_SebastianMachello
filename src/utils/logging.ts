@@ -8,9 +8,9 @@ function write(level: Level, msg: string, context: Record<string, unknown> = {})
 
     const min = process.env.LOG_LEVEL ?? "info";
 
-    if (min === "silent") return; // en los tests no queremos ruido 
+    if (min === "silent") return;
 
-    if (ORDER[level] < (ORDER[min as Level] ?? ORDER.info)) return; // filtra por nivel 
+    if (ORDER[level] < (ORDER[min as Level] ?? ORDER.info)) return;
 
     const line = { ts: new Date().toISOString(), level, msg, ...context };
 

@@ -6,19 +6,10 @@ import { withRetry, DEFAULT_RETRY, type RetryOptions } from "../utils/retry.js";
 
 import type { CommitDTO, IssueDTO, RepoDTO, RepoInfo } from "../types.js";
 
-import type { CreateIssueInput, ListRepositoriesInput } from "../schemas/index.js";
+import type { CreateIssueInput, ListRepositoriesInput, CreateRepositoryInput, ListIssuesInput } from "../schemas/index.js";
 
 
 
-// ───────────────────────────────────────────────────────────── 
-
-// Operaciones de GitHub (el "wrapper" de Octokit, Lectures 4, 5 y 6) 
-
-// Las tools NO usan Octokit directo: usan esta interfaz. 
-
-// Así en los tests le pasamos una versión falsa (mock) sin tocar la red. 
-
-// ───────────────────────────────────────────────────────────── 
 
 
 
@@ -31,6 +22,12 @@ export interface GitHubOperations {
     createIssue(input: CreateIssueInput): Promise<IssueDTO>;
 
     createCommitWithFile(input: CommitFileInput): Promise<CommitDTO>;
+
+    createRepository(input: CreateRepositoryInput): Promise<RepoDTO>;
+
+    listIssues(input: ListIssuesInput): Promise<IssueDTO[]>;
+
+
 
 }
 
@@ -54,11 +51,7 @@ export interface CommitFileInput {
 
 
 
-// En las escrituras que cambian algo VISIBLE (crear issue, mover la rama) solo reintentamos 
 
-// el rate limit: GitHub rechazó la request, así que seguro no se creó nada. Un error de red, 
-
-// en cambio, puede llegar DESPUÉS de que GitHub creó el issue: reintentar lo duplicaría. 
 
 const soloRateLimit = (err: AppError) => err.retryable && (err.status === 403 || err.status === 429);
 
@@ -66,7 +59,6 @@ const soloRateLimit = (err: AppError) => err.retryable && (err.status === 403 ||
 
 export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = DEFAULT_RETRY): GitHubOperations {
 
-    // Toda llamada pasa por acá: reintento responsable + traducción de errores 
 
     function call<T>(ctx: ErrorContext, fn: () => Promise<T>, retryOn?: (err: AppError) => boolean): Promise<T> {
 
@@ -128,7 +120,7 @@ export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = D
 
                 () => octokit.rest.issues.create({ owner, repo, title, ...(body ? { body } : {}), ...(labels ? { labels } : {}) }),
 
-                soloRateLimit, // crear un issue NO es importante: no reintentamos errores de red 
+                soloRateLimit,
 
             );
 
@@ -150,7 +142,7 @@ export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = D
 
 
 
-        // ── El commit en 6 pasos (Lecture 6) ─────────────────────── 
+
 
         async createCommitWithFile({ owner, repo, branch, path, content, message }) {
 
@@ -158,7 +150,7 @@ export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = D
 
 
 
-            // PASO 1 · getRef: ¿a qué commit apunta hoy la rama?               (solo lectura) 
+
 
             let baseCommitSha: string;
 
@@ -190,7 +182,7 @@ export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = D
 
 
 
-            // PASO 2 · getCommit: ¿qué tree (foto de archivos) tiene ese commit?  (solo lectura) 
+
 
             const { data: baseCommit } = await call(ctx, () =>
 
@@ -200,7 +192,7 @@ export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = D
 
 
 
-            // PASO 3 · createBlob: subimos el CONTENIDO del archivo (en base64) 
+
 
             const { data: blob } = await call(
 
@@ -224,7 +216,7 @@ export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = D
 
 
 
-            // PASO 4 · createTree: foto nueva = la anterior (base_tree) + nuestro archivo 
+
 
             const { data: tree } = await call(
 
@@ -248,7 +240,7 @@ export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = D
 
 
 
-            // PASO 5 · createCommit: apunta al tree nuevo y su padre es el commit anterior 
+
 
             const { data: newCommit } = await call(
 
@@ -260,9 +252,6 @@ export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = D
 
 
 
-            // PASO 6 · updateRef: movemos la rama. RECIÉN ACÁ el cambio se ve en GitHub. 
-
-            // force: false → si otra persona commiteó mientras tanto, GitHub lo rechaza (422) y no pisamos nada. 
 
             try {
 
@@ -314,6 +303,43 @@ export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = D
 
         },
 
-    };
+        async createRepository(input) {
+            const { data } = await call(
+                { operation: "crear el repositorio" },
+                () => octokit.rest.repos.createForAuthenticatedUser({
+                    name: input.name,
+                    description: input.description,
+                    private: input.private,
 
-} 
+                }),
+                soloRateLimit
+            )
+            return {
+                full_name: data.full_name,
+                owner: data.owner.login,
+                name: data.name,
+                description: data.description,
+                private: data.private,
+                html_url: data.html_url,
+
+            }
+        },
+
+        async listIssues({ owner, repo, state, per_page }) {
+            const { data } = await call({ operation: "listar los issues", owner, repo }, () =>
+                octokit.rest.issues.listForRepo({ owner, repo, state, per_page }),
+            );
+
+            return data
+                .filter((i) => !i.pull_request) // la API de issues también devuelve PRs: los sacamos
+                .map((i) => ({
+                    number: i.number,
+                    title: i.title,
+                    state: i.state,
+                    html_url: i.html_url,
+                    labels: i.labels.map((l) => (typeof l === "string" ? l : (l.name ?? ""))),
+                }));
+        },
+
+    };
+}

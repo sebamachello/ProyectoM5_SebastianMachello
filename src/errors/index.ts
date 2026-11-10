@@ -1,13 +1,7 @@
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { logger } from "../utils/logging.js";
 
-// ─────────────────────────────────────────────────────────────
 
-// Jerarquía de errores del server (Lecture 9)
-
-// Cada error dice QUÉ pasó (message) y QUÉ HACER (action + hint).
-
-// ─────────────────────────────────────────────────────────────
 
 export type ErrorCode =
 
@@ -51,7 +45,6 @@ interface AppErrorOptions {
 
 }
 
-// Clase base: todos nuestros errores tienen la misma forma.
 
 export class AppError extends Error {
 
@@ -203,13 +196,7 @@ export class GitHubAPIError extends AppError {
 
 }
 
-// ─────────────────────────────────────────────────────────────
 
-// Traducción: error crudo de Octokit → nuestro AppError
-
-// ─────────────────────────────────────────────────────────────
-
-// Dónde estábamos cuando falló (para armar mensajes con nombres reales)
 
 export interface ErrorContext {
 
@@ -247,7 +234,7 @@ export function isRateLimit(status: number | undefined, headers: Record<string, 
 
 export function toAppError(err: unknown, ctx: ErrorContext): AppError {
 
-    if (err instanceof AppError) return err; // ya está traducido 
+    if (err instanceof AppError) return err;
 
 
 
@@ -261,7 +248,7 @@ export function toAppError(err: unknown, ctx: ErrorContext): AppError {
 
 
 
-    // Sin "response" = la request nunca llegó a GitHub (Octokit lo reporta como status 500) 
+
 
     if (status === undefined || (status === 500 && !e.response)) {
 
@@ -401,11 +388,6 @@ export function toAppError(err: unknown, ctx: ErrorContext): AppError {
 
 }
 
-// ─────────────────────────────────────────────────────────────
-
-// Lo que VE el agente cuando una tool falla: siempre la misma forma
-
-// ─────────────────────────────────────────────────────────────
 
 export interface ToolErrorPayload {
 
@@ -445,7 +427,7 @@ export function formatToolError(err: unknown): ToolErrorPayload {
 
     }
 
-    // Nunca devolvemos el stack ni el error crudo: puede filtrar datos internos 
+
 
     return {
 
@@ -463,7 +445,7 @@ export function formatToolError(err: unknown): ToolErrorPayload {
 
 }
 
-// Zod rechazó el input → ValidationError con el detalle de cada campo
+
 
 export function fromZodError(error: { issues: Array<{ path: PropertyKey[]; message: string }> }): ValidationError {
 
@@ -475,7 +457,7 @@ export function fromZodError(error: { issues: Array<{ path: PropertyKey[]; messa
 
 }
 
-// La respuesta de error de una tool: isError: true + el payload estándar
+
 
 export function fail(tool: string, err: unknown): CallToolResult {
 

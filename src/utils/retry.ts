@@ -2,26 +2,13 @@ import { AppError } from "../errors/index.js";
 import { logger } from "./logging.js";
 
 
-
-// ───────────────────────────────────────────────────────────── 
-
-// Retry responsable con exponential backoff (Lectures 4 y 9) 
-
-// Solo reintenta errores TRANSITORIOS (retryable: rate limit, red, 5xx). 
-
-// Nunca reintenta 401, 404, 422 ni errores de validación. 
-
-// ───────────────────────────────────────────────────────────── 
-
-
-
 export interface RetryOptions {
 
-    maxRetries: number; // cuántas veces reintentar como máximo (nunca infinito) 
+    maxRetries: number;
 
-    baseDelayMs: number; // primera espera; después se duplica: 1s, 2s, 4s... 
+    baseDelayMs: number;
 
-    maxDelayMs: number; // tope de cada espera 
+    maxDelayMs: number;
 
 }
 
@@ -55,13 +42,13 @@ export async function withRetry<T>(
 
         } catch (raw) {
 
-            const err = toError(raw); // traducimos el error crudo a nuestro AppError 
+            const err = toError(raw);
 
             if (!retryOn(err) || attempt >= opts.maxRetries) throw err;
 
 
 
-            // Si GitHub dice cuánto esperar (header retry-after), le hacemos caso. Si no, backoff. 
+
 
             const retryAfter = Number(err.details?.["retryAfter"]);
 

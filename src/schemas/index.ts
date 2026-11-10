@@ -28,3 +28,39 @@ export function toJsonSchema(schema: z.ZodType): Record<string, unknown> {
     const { $schema: _ignorado, ...json } = z.toJSONSchema(schema, { io: "input" }) as Record<string, unknown>;
     return json;
 }
+
+export const CreateCommitSchema = z.object({
+    owner,
+    repo,
+    path: z.string().min(1, "path es requerido").describe("Ruta del archivo, ej: test.md"),
+    content: z.string().min(1, "contenido requerido").describe("Contenido del archivo en texto normal"),
+    message: z.string().min(1, "mensaje requerido").describe("Mensaje del commit"),
+    branch: z.string().optional().describe("Rama donde se hace el commit. Si no se manda, se usa la rama principal del repo")
+})
+
+export const CreateRepositorySchema = z.object({
+    name: z.string()
+        .min(3, "name debe tener al menos 3 caracteres")
+        .max(100, "name no puede superar los 100 caracteres")
+        .regex(/^[a-zA-Z0-9-]+$/, "name solo puede tener letras, números y guiones (sin espacios ni otros símbolos). Ej: mi-proyecto-2")
+        .describe("Nombre del repositorio nuevo: entre 3 y 100 caracteres, solo letras, números y guiones. Ej: mi-proyecto-2"),
+
+    description: z.string().trim().default("")
+        .describe("Descripción corta del repositorio, la que aparece en su página de GitHub. Opcional"),
+
+    private: z.boolean().default(false)
+        .describe("true para crear el repositorio privado, false para público. Por defecto, público"),
+});
+
+export type CreateRepositoryInput = z.infer<typeof CreateRepositorySchema>;
+
+export const ListIssuesSchema = z.object({
+    owner,
+    repo,
+    state: z.enum(["open", "closed", "all"]).default("open")
+        .describe("Qué issues listar: 'open' (abiertos), 'closed' (cerrados) o 'all' (todos). Por defecto, abiertos"),
+    per_page: z.number().int().min(1).max(100).default(20)
+        .describe("Cantidad de issues a devolver (1 a 100). Por defecto, 20"),
+});
+
+export type ListIssuesInput = z.infer<typeof ListIssuesSchema>;

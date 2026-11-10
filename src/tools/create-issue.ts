@@ -38,7 +38,7 @@ export function createIssueTool(github: GitHubOperations): McpTool {
 
             try {
 
-                // PREFLIGHT: antes de escribir, verificamos que el repo exista y acepte issues 
+
 
                 const info = await github.getRepository(owner, repo);
 
@@ -56,7 +56,7 @@ export function createIssueTool(github: GitHubOperations): McpTool {
 
                 const issue = await github.createIssue(parsed.data);
 
-                // Éxito: el JSON como texto (para el LLM) y como structuredContent (para programas) 
+
 
                 const data = { issue };
 
