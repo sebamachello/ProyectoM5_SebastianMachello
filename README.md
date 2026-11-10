@@ -278,7 +278,7 @@ Lista los repositorios del usuario dueño del token. Sirve para descubrir qué r
 
 ### `create_repository`
 
-Crea un repositorio nuevo en la cuenta del usuario autenticado. No crea repos en organizaciones.
+Crea un repositorio nuevo en la cuenta del usuario autenticado. No crea repos en organizaciones. El repositorio se crea con un README inicial (`auto_init`), así que ya puede recibir commits con `create_commit`.
 
 | Parámetro | Tipo | Requerido | Descripción |
 |---|---|---|---|
