@@ -10,7 +10,7 @@ export function createRepositoryTool(github: GitHubOperations): McpTool {
             description:
                 "Crea un repositorio NUEVO en la cuenta del usuario autenticado (el dueño del token). " +
                 "Requiere name; description y private son opcionales (por defecto, público y sin descripción). " +
-                "Se crea con un README inicial, listo para recibir commits." +
+                "Se crea con un README inicial, listo para recibir commits. " +
                 "El nombre solo admite letras, números y guiones, entre 3 y 100 caracteres. " +
                 "Escribe en GitHub: el repositorio queda creado. No sirve para crear issues ni commits, " +
                 "ni para crear repos en organizaciones.",
