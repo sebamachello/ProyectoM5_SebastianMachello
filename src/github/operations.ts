@@ -310,6 +310,7 @@ export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = D
                     name: input.name,
                     description: input.description,
                     private: input.private,
+                    auto_init: true,
 
                 }),
                 soloRateLimit
