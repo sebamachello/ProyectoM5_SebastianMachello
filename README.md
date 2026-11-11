@@ -386,7 +386,7 @@ Crea o modifica **un** archivo de texto en un repositorio haciendo un commit. Si
 |---|---|---|---|
 | `owner` | string | **Sí** | Usuario u organización dueña del repo |
 | `repo` | string | **Sí** | Nombre del repo, sin el owner |
-| `path` | string | **Sí** | Ruta del archivo desde la raíz del repo, **sin `/` al inicio**. Ej: `docs/notas.md` |
+| `path` | string | **Sí** | Ruta del archivo desde la raíz del repo, **sin `/` al inicio ni `..`**. Ej: `docs/notas.md` |
 | `content` | string | **Sí** | Contenido del archivo en **texto normal** (el server lo convierte a base64) |
 | `message` | string | **Sí** | Mensaje del commit |
 | `branch` | string | No | Rama destino. Por defecto, la rama principal del repo |
@@ -499,7 +499,7 @@ Los tests **no llaman a la API real de GitHub** ni usan tokens: son rápidos y s
 
 | Archivo | Qué prueba | Tipo | Tests |
 |---|---|---|---|
-| `tests/tools.test.ts` | Schemas de Zod: inputs válidos pasan e inválidos fallan (nombre de repo con espacios, demasiado corto, `per_page` fuera de rango) | Unit | 4 |
+| `tests/tools.test.ts` | Schemas de Zod: inputs válidos pasan e inválidos fallan (nombre de repo con espacios, demasiado corto, `per_page` fuera de rango y path con `..` en `create_commit`) | Unit | 5 |
 | `tests/errors.test.ts` | Transformación de errores: un 404 produce el mensaje en lenguaje natural y un 401 se convierte en `AuthenticationError` | Unit | 2 |
 | `tests/github.test.ts` | Operaciones con **Octokit mockeado**: transformación de la respuesta a DTO y manejo de un repo inexistente | Integration | 2 |
 
