@@ -32,8 +32,9 @@ export function toJsonSchema(schema: z.ZodType): Record<string, unknown> {
 export const CreateCommitSchema = z.object({
     owner,
     repo,
-    path: z.string().min(1, "path es requerido").describe("Ruta del archivo, ej: test.md"),
-    content: z.string().min(1, "contenido requerido").describe("Contenido del archivo en texto normal"),
+    path: z.string().trim().min(1, "path es requerido").refine((p) => !p.startsWith("/"), "path no puede empezar con /").refine((p) => !p.split("/").includes(".."), "path no puede contener '..'")
+        .describe("Ruta del archivo dentro del repo, sin / al inicio. Ej: docs/notas.md"),
+    content: z.string().min(1, "Contenido requerido").describe("Contenido COMPLETO del archivo (texto). Si el archivo existe, se reemplaza entero"),
     message: z.string().min(1, "mensaje requerido").describe("Mensaje del commit"),
     branch: z.string().optional().describe("Rama donde se hace el commit. Si no se manda, se usa la rama principal del repo")
 })
